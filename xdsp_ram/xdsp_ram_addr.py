@@ -3,7 +3,7 @@
 import os 
 
 # const
-XDSP_TOP_BASE   = 0x00000000        # bit[31:22] = ??, bit[21] = 0
+XDSP_TOP_BASE   = 0x01C00000        # bit[31:22] = ??, bit[21] = 0
 XDSP0_BASE      = 0x00000000        # bit[20:19] = "00"
 XDSP1_BASE      = 0x00080000        # bit[21:19] = "01"
 XDSP2_BASE      = 0x00100000        # bit[21:19] = "10"
