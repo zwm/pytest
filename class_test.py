@@ -5,6 +5,7 @@
 class Test(object):
     x = 11
     def __init__(self, _x):
+        print("__init__ has been invoked")
         self._x = _x
         print("Test.__init__")
   
@@ -19,6 +20,7 @@ class Test(object):
     @classmethod
     def getPt(cls):
         cls.class_method()
+#        class_method(cls)      # Error!
         cls.static_method()
   
 if "__main__" == __name__:
@@ -29,11 +31,21 @@ if "__main__" == __name__:
     t = Test(22)                # Test.__init__
     t.class_method()            # class_method
     t.static_method()           # static_method
+
+#    print("Test.__dict__: " + Test.__dict__)
+    print("Test.__dict__: ")
+    print(Test.__dict__)
+    print("Test.__name__: ")
+    print(Test.__name__)
+    print("Test.__doc__: ")
+    print(Test.__doc__)
+    print("Test.__bases__: ")
+    print(Test.__bases__)
      
-    print Test.x                # 11
+    print(Test.x)               # 11
 #     print Test._x
      
-    print t.x                   # 11
-    print t._x                  # 22
+    print(t.x)                  # 11
+    print(t._x)                 # 22
      
 #     t.getPr()   # 'Test' object has no attribute 'getPr'
