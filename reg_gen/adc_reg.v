@@ -1,7 +1,9 @@
 
-module adc_reg {
+module adc_reg (
+    // sys
+    input rstn,
+    input clk,
     // bus
-    input bus_rd,
     input bus_wr,
     input [3:0] bus_bsel,
     input [5:0] bus_addr,
@@ -20,9 +22,13 @@ module adc_reg {
     output reg fifo_hi_en,
     output reg eoc_en,
     input awd_state,
+    output awd_state_clr,
     input fifo_ovfl_state,
+    output fifo_ovfl_state_clr,
     input fifo_hi_state,
+    output fifo_hi_state_clr,
     input eoc_state,
+    output eoc_state_clr,
     output reg fifo_reset,
     input [3:0] fifo_items,
     output reg [3:0] fifo_waterlevel,
@@ -31,7 +37,7 @@ module adc_reg {
     output reg [11:0] awd_lo,
     output reg [31:0] ana_ctrl
 );
-// reg_offset: 0, reg_name: ADC_CR1
+// reg_offset: 0x00, reg_name: ADC_CR1
 always @(posedge clk or negedge rstn)
     if (~rstn) begin
         adc_clk_sel <= 2'h0;
@@ -53,7 +59,7 @@ always @(posedge clk or negedge rstn)
             adc_en <= bus_wdata[0];
         end
     end
-// reg_offset: 4, reg_name: ADC_CR2
+// reg_offset: 0x04, reg_name: ADC_CR2
 always @(posedge clk or negedge rstn)
     if (~rstn) begin
         tmr_ovfl_en <= 9'h0;
@@ -71,7 +77,7 @@ always @(posedge clk or negedge rstn)
             sw_start <= bus_wdata[0];
         end
     end
-// reg_offset: 10, reg_name: ADC_IE
+// reg_offset: 0x10, reg_name: ADC_IE
 always @(posedge clk or negedge rstn)
     if (~rstn) begin
         awd_en <= 1'h0;
@@ -87,8 +93,13 @@ always @(posedge clk or negedge rstn)
             eoc_en <= bus_wdata[0];
         end
     end
-// reg_offset: 14, reg_name: ADC_STATE
-// reg_offset: 20, reg_name: ADC_FIFO
+// reg_offset: 0x14, reg_name: ADC_STATE
+// clr
+assign awd_state_clr = bus_sel && bus_wr && bus_addr == 5 && bus_bsel[0] && bus_wdata[3];
+assign fifo_ovfl_state_clr = bus_sel && bus_wr && bus_addr == 5 && bus_bsel[0] && bus_wdata[2];
+assign fifo_hi_state_clr = bus_sel && bus_wr && bus_addr == 5 && bus_bsel[0] && bus_wdata[1];
+assign eoc_state_clr = bus_sel && bus_wr && bus_addr == 5 && bus_bsel[0] && bus_wdata[0];
+// reg_offset: 0x20, reg_name: ADC_FIFO
 always @(posedge clk or negedge rstn)
     if (~rstn) begin
         fifo_reset <= 1'h0;
@@ -102,8 +113,8 @@ always @(posedge clk or negedge rstn)
             fifo_waterlevel[3:0] <= bus_wdata[3:0];
         end
     end
-// reg_offset: 24, reg_name: ADC_DATA
-// reg_offset: 30, reg_name: ADC_AWD
+// reg_offset: 0x24, reg_name: ADC_DATA
+// reg_offset: 0x30, reg_name: ADC_AWD
 always @(posedge clk or negedge rstn)
     if (~rstn) begin
         awd_hi <= 12'h0;
@@ -123,7 +134,7 @@ always @(posedge clk or negedge rstn)
             awd_lo[7:0] <= bus_wdata[7:0];
         end
     end
-// reg_offset: 40, reg_name: ADC_ANA
+// reg_offset: 0x40, reg_name: ADC_ANA
 always @(posedge clk or negedge rstn)
     if (~rstn) begin
         ana_ctrl <= 32'h0;

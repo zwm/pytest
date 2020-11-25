@@ -18,10 +18,10 @@ field_name      = 4
 field_access    = 5         # support RW/RO/WO/RW1C
 field_default   = 6
 
+bus_width       = 8-2
 reg_addr_base   = 0xfbb00
 
 fp_exl = xlrd.open_workbook(f_excel)
-
 sheet_num = len(fp_exl.sheets())
 sheets = fp_exl.sheets()
 print(sheets)
@@ -201,12 +201,14 @@ print('----------------------------------------------')
 #############################################################################
 fl = ''
 fl = fl + '\n'
-fl = fl + 'module ' + module_name + ' {\n'
+fl = fl + 'module ' + module_name + ' (\n'
+fl = fl + '    // sys\n'
+fl = fl + '    input rstn,\n'
+fl = fl + '    input clk,\n'
 fl = fl + '    // bus\n'
-fl = fl + '    input bus_rd,\n'
 fl = fl + '    input bus_wr,\n'
 fl = fl + '    input [3:0] bus_bsel,\n'
-fl = fl + '    input [5:0] bus_addr,\n'
+fl = fl + '    input [%d:0] bus_addr,\n'%(bus_width-1)
 fl = fl + '    input [31:0] bus_wdata,\n'
 fl = fl + '    output reg [31:0] bus_rdata,\n'
 fl = fl + '    // reg\n'
@@ -255,7 +257,7 @@ for r in rdb:
     w1c_flag = 0
     reg_addr = r[0]
     reg_name = r[1]
-    fl = fl + '// reg_offset: %x, reg_name: %s\n'%(reg_addr, reg_name)
+    fl = fl + '// reg_offset: 0x%02x, reg_name: %s\n'%(reg_addr, reg_name)
     for f in r[2]:
         field_name = f[1]
         field_dir = f[2]
@@ -347,6 +349,8 @@ for r in rdb:
                 fl = fl + '        end\n'
         # end
         fl = fl + '    end\n'
+    # generate write
+    if w1c_flag:
         # RW1C seg process
         for b in range(1):
             clr_flag = 0
