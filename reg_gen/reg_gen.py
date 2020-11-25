@@ -2,13 +2,13 @@ import os
 import re
 import xlrd
 
-f_excel         = 'yc1308_rfreg.xlsx'
-f_vlog          = 'reg.v'
+f_excel         = 'E:\svn\prj_share_sec\YC3122\Architecture\YC3122_Reg.xls'
+f_vlog          = 'adc_reg.v'
 
 module_name     = 'adc_reg'
 
-row_start       = 87
-row_stop        = 97
+row_start       = 1223
+row_stop        = 1258
 column_num      = 7
 
 reg_addr        = 1
@@ -17,6 +17,8 @@ field_width     = 3
 field_name      = 4
 field_access    = 5         # support RW/RO/WO/RW1C
 field_default   = 6
+
+reg_addr_base   = 0xfbb00
 
 fp_exl = xlrd.open_workbook(f_excel)
 
@@ -50,7 +52,7 @@ def reg_addr_proc (raw):
             print("    reg_addr")
             print(raw)
         # remove base
-        raw_hex = raw_hex - 0
+        raw_hex = raw_hex - reg_addr_base
         #raw_hex = hex(raw_hex)
     else:
         raw_hex = ""
@@ -87,7 +89,10 @@ def reg_field_default_proc (raw):
             raw = str(raw)
             raw = int(raw, 16)
         elif isinstance(raw, str):
-            raw = int(raw, 16)
+            if raw != '-':
+                raw = int(raw, 16)
+            else:
+                pass
         else:
             print("Error type of reg_field_default")
             print("    reg_field_default")
@@ -151,11 +156,12 @@ for i in range(nrows):
                     reg_field = []
                     print('Escape blank line: %d'%(i+1))
                 elif (row_list[field_name] == "-") or (row_list[field_name] == "reserved") or (row_list[field_name] == ""):
-                    reg_item.append(reg_field)
-                    rdb.append(reg_item)
-                    reg_flag = 0
-                    reg_item = []
-                    reg_field = []
+                    pass
+                    #reg_item.append(reg_field)
+                    #rdb.append(reg_item)
+                    #reg_flag = 0
+                    #reg_item = []
+                    #reg_field = []
                 else:
                     reg_field.append((row_list[field_width], row_list[field_name], row_list[field_access], row_list[field_default])) 
             # reg process
@@ -168,13 +174,19 @@ for i in range(nrows):
                 reg_field = []
                 reg_item.append(row_list[reg_addr])
                 reg_item.append(row_list[reg_name])
-                reg_field.append((row_list[field_width], row_list[field_name], row_list[field_access], row_list[field_default])) 
+                if (row_list[field_name] == "-") or (row_list[field_name] == "reserved") or (row_list[field_name] == ""):
+                    pass
+                else:
+                    reg_field.append((row_list[field_width], row_list[field_name], row_list[field_access], row_list[field_default])) 
                 reg_flag = 1
         else:
             if row_list[reg_addr] != "": # 
                 reg_item.append(row_list[reg_addr])
                 reg_item.append(row_list[reg_name])
-                reg_field.append((row_list[field_width], row_list[field_name], row_list[field_access], row_list[field_default])) 
+                if (row_list[field_name] == "-") or (row_list[field_name] == "reserved") or (row_list[field_name] == ""):
+                    pass
+                else:
+                    reg_field.append((row_list[field_width], row_list[field_name], row_list[field_access], row_list[field_default])) 
                 reg_flag = 1
 
 print('----------------------------------------------')
