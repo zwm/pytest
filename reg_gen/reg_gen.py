@@ -87,10 +87,10 @@ def reg_field_default_proc (raw):
         if isinstance(raw, float):
             raw = int(raw)
             raw = str(raw)
-            raw = int(raw, 16)
         elif isinstance(raw, str):
             if raw != '-':
-                raw = int(raw, 16)
+                #raw = int(raw, 16)
+                pass
             else:
                 pass
         else:
@@ -206,6 +206,7 @@ fl = fl + '    // sys\n'
 fl = fl + '    input rstn,\n'
 fl = fl + '    input clk,\n'
 fl = fl + '    // bus\n'
+fl = fl + '    input bus_sel,\n'
 fl = fl + '    input bus_wr,\n'
 fl = fl + '    input [3:0] bus_bsel,\n'
 fl = fl + '    input [%d:0] bus_addr,\n'%(bus_width-1)
@@ -280,7 +281,10 @@ for r in rdb:
             field_dir = f[2]
             field_default = f[3]
             if field_dir == 'RW' or field_dir == 'WO':
-                fl = fl + '        %s <= %d\'h%s;\n'%(field_name, field_width, hex(field_default)[2:])
+                if field_default[-1] == 'b':
+                    fl = fl + '        %s <= %d\'b%s;\n'%(field_name, field_width, field_default[0:-1])
+                else:
+                    fl = fl + '        %s <= %d\'h%s;\n'%(field_name, field_width, field_default)
         fl = fl + '    end\n'
         # write
         fl = fl + '    else if (bus_sel && bus_wr && bus_addr == %d) begin\n'%(int(reg_addr/4))
@@ -311,6 +315,8 @@ for r in rdb:
                                 fl = fl + '            %s <= bus_wdata[%d];\n'%(field_name, field_start)
                     # non-single
                     else:
+                        if field_name == 'tmr_ovfl_en':
+                            print('index_max: %d, index_min: %d, field_start: %d, field_stop: %d'%(index_max, index_min, field_start, field_stop))
                         # involved in seg
                         if (field_start <= index_max) and (field_stop >= index_min):
                             if seg_vld:
@@ -328,7 +334,7 @@ for r in rdb:
                                 fl = fl + '        if (bus_bsel[%d]) begin\n'%(3-b)
                                 fl = fl + '            %s[%d:%d] <= bus_wdata[%d:%d];\n'%(field_name, index_max-field_stop, index_min-field_stop, index_max, index_min)
                         # high cross seg
-                        elif (field_start <= index_max) and (field_start > index_min) and (field_stop < index_min):
+                        elif (field_start <= index_max) and (field_start >= index_min) and (field_stop < index_min):
                             if seg_vld:
                                 fl = fl + '            %s[%d:%d] <= bus_wdata[%d:%d];\n'%(field_name, field_start-field_stop, index_min-field_stop, field_start, index_min)
                             else:
@@ -336,7 +342,7 @@ for r in rdb:
                                 fl = fl + '        if (bus_bsel[%d]) begin\n'%(3-b)
                                 fl = fl + '            %s[%d:%d] <= bus_wdata[%d:%d];\n'%(field_name, field_start-field_stop, index_min-field_stop, field_start, index_min)
                         # low cross seg
-                        elif (field_start > index_max) and (field_stop >= index_min) and (field_stop < index_max):
+                        elif (field_start > index_max) and (field_stop >= index_min) and (field_stop <= index_max):
                             if seg_vld:
                                 fl = fl + '            %s[%d:0] <= bus_wdata[%d:%d];\n'%(field_name, index_max-field_stop, index_max, field_stop)
                             else:
@@ -385,7 +391,7 @@ for r in rdb:
 fl = fl + '// bus_rdata\n'
 fl = fl + 'always @(*) begin\n'
 fl = fl + '    // default\n'
-fl = fl + '    bus_rdata = 0\n'
+fl = fl + '    bus_rdata = 0;\n'
 fl = fl + '    // rdata_mux\n'
 fl = fl + '    case(bus_addr)\n'
 # bus_rdata mux
